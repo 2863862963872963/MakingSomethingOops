@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local AscentWindow = {}
-AscentWindow.Version = "v1.0.0"
+AscentWindow.Version = "v1.0.1"
 
 local blur = Instance.new("BlurEffect")
 blur.Size = 12
