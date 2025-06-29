@@ -42,7 +42,7 @@ function AscentWindow:CreateWindow(config)
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "Window"
     mainFrame.Size = baseSize
-    mainFrame.Position = UDim2.new(0.5, -baseSize.X.Offset / 2, 0.5, -baseSize.Y.Offset / 2)
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     mainFrame.BackgroundColor3 = config.BackgroundColor or Color3.fromRGB(30, 30, 30)
     mainFrame.BackgroundTransparency = 0.1
