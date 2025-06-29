@@ -1,8 +1,9 @@
 -- Ascent Library - Window Module
--- Supports advanced config-based window creation with dynamic sizing and future extensions
+-- Supports advanced config-based window creation with dynamic sizing, blur, and draggable UI
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -16,6 +17,13 @@ blur.Name = "AscentBlur"
 blur.Parent = game:GetService("Lighting")
 
 function AscentWindow:CreateWindow(config)
+    -- Remove previous UI
+    local existing = PlayerGui:FindFirstChild("AscentUI")
+    if existing then
+        existing:Destroy()
+        blur.Enabled = false
+    end
+
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "AscentUI"
     screenGui.ResetOnSpawn = false
@@ -56,7 +64,7 @@ function AscentWindow:CreateWindow(config)
         blur.Enabled = true
     end
 
-    -- Topbar label
+    -- Topbar
     local topbar = Instance.new("TextLabel")
     topbar.Size = UDim2.new(1, 0, 0, 40)
     topbar.BackgroundTransparency = 1
@@ -66,6 +74,59 @@ function AscentWindow:CreateWindow(config)
     topbar.TextColor3 = Color3.fromRGB(255, 255, 255)
     topbar.TextXAlignment = Enum.TextXAlignment.Center
     topbar.Parent = mainFrame
+
+    -- Draggable logic (mobile + pc)
+    local dragging, dragInput, dragStart, startPos
+    topbar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    topbar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- Close ("×") button
+    local close = Instance.new("TextButton")
+    close.Name = "CloseButton"
+    close.Size = UDim2.new(0, 30, 0, 30)
+    close.Position = UDim2.new(1, -35, 0, 5)
+    close.AnchorPoint = Vector2.new(0, 0)
+    close.BackgroundTransparency = 1
+    close.Text = "×" -- Replace with Lucide icon if needed
+    close.TextColor3 = Color3.fromRGB(200, 200, 200)
+    close.Font = Enum.Font.GothamBold
+    close.TextSize = 20
+    close.ZIndex = 2
+    close.Parent = mainFrame
+
+    close.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+        blur.Enabled = false
+    end)
 
     return {
         Gui = screenGui,
