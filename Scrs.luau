@@ -1,5 +1,5 @@
 -- Ascent Library - Window Module
--- Supports advanced config-based window creation with dynamic sizing, blur, and draggable UI
+-- Supports advanced config-based window creation with dynamic sizing, blur, draggable UI, and tab support
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local AscentWindow = {}
-AscentWindow.Version = "v1.0.1"
+AscentWindow.Version = "v1.0.0"
 
 local blur = Instance.new("BlurEffect")
 blur.Size = 12
@@ -116,7 +116,7 @@ function AscentWindow:CreateWindow(config)
     close.Position = UDim2.new(1, -35, 0, 5)
     close.AnchorPoint = Vector2.new(0, 0)
     close.BackgroundTransparency = 1
-    close.Text = "×" -- Replace with Lucide icon if needed
+    close.Text = "×"
     close.TextColor3 = Color3.fromRGB(200, 200, 200)
     close.Font = Enum.Font.GothamBold
     close.TextSize = 20
@@ -128,12 +128,91 @@ function AscentWindow:CreateWindow(config)
         blur.Enabled = false
     end)
 
-    return {
+    -- Tab Holder
+    local tabWidth = config.TabWidth or 160
+
+    local tabHolder = Instance.new("Frame")
+    tabHolder.Name = "TabHolder"
+    tabHolder.Size = UDim2.new(0, tabWidth, 1, -40)
+    tabHolder.Position = UDim2.new(0, 0, 0, 40)
+    tabHolder.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    tabHolder.BorderSizePixel = 0
+    tabHolder.Parent = mainFrame
+
+    local tabLayout = Instance.new("UIListLayout")
+    tabLayout.Padding = UDim.new(0, 6)
+    tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabLayout.Parent = tabHolder
+
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "TabContent"
+    contentFrame.Size = UDim2.new(1, -tabWidth, 1, -40)
+    contentFrame.Position = UDim2.new(0, tabWidth, 0, 40)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.ClipsDescendants = true
+    contentFrame.Parent = mainFrame
+
+    local tabs = {}
+
+    local window = {
         Gui = screenGui,
         Main = mainFrame,
         Topbar = topbar,
-        Config = config,
+        TabHolder = tabHolder,
+        ContentFrame = contentFrame,
+        Tabs = tabs,
+        Config = config
     }
+
+    function window:AddTab(tabConfig)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -10, 0, 32)
+        button.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+        button.Text = tabConfig.Name or "Tab"
+        button.TextColor3 = Color3.fromRGB(240, 240, 240)
+        button.Font = Enum.Font.GothamMedium
+        button.TextSize = 16
+        button.AutoButtonColor = true
+        button.BorderSizePixel = 0
+        button.Parent = tabHolder
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = button
+
+        local page = Instance.new("ScrollingFrame")
+        page.Name = "Page_" .. (tabConfig.Name or "Tab")
+        page.Size = UDim2.new(1, 0, 1, 0)
+        page.Position = UDim2.new(0, 0, 0, 0)
+        page.BackgroundTransparency = 1
+        page.Visible = tabConfig.Visible or false
+        page.ScrollBarThickness = 4
+        page.Parent = contentFrame
+
+        local layout = Instance.new("UIListLayout")
+        layout.Padding = UDim.new(0, 6)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Parent = page
+
+        button.MouseButton1Click:Connect(function()
+            for _, tab in pairs(tabs) do
+                tab.Page.Visible = false
+            end
+            page.Visible = true
+        end)
+
+        local tabData = {
+            Name = tabConfig.Name,
+            Desc = tabConfig.Desc,
+            Icon = tabConfig.Icon,
+            Page = page,
+            Button = button,
+        }
+        table.insert(tabs, tabData)
+        return tabData
+    end
+
+    return window
 end
 
 function AscentWindow:Destroy()
