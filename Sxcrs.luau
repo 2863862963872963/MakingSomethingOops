@@ -1,5 +1,5 @@
 -- Ascent Library - Window Module
--- Supports advanced config-based window creation with dynamic sizing, blur, draggable UI, and tab support
+-- Supports advanced config-based window creation with dynamic sizing, blur, draggable UI, and tab/button support
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -208,6 +208,32 @@ function AscentWindow:CreateWindow(config)
             Page = page,
             Button = button,
         }
+
+        function tabData:AddButton(buttonConfig)
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 30)
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            btn.Text = buttonConfig.Text or "Button"
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 14
+            btn.AutoButtonColor = true
+            btn.BorderSizePixel = 0
+            btn.Parent = page
+
+            local uic = Instance.new("UICorner")
+            uic.CornerRadius = UDim.new(0, 6)
+            uic.Parent = btn
+
+            btn.MouseButton1Click:Connect(function()
+                if buttonConfig.Callback then
+                    pcall(buttonConfig.Callback)
+                end
+            end)
+
+            return btn
+        end
+
         table.insert(tabs, tabData)
         return tabData
     end
