@@ -1,6 +1,4 @@
--- GodTierUI: Custom CSGO-Style UI Library for Roblox
--- Features modern CSGO aesthetics (dark theme, neon accents) with Fluent-inspired blur and animations
--- Built to dominate the UI library challenge with modularity and polish
+
 
 -- Services
 local Players = game:GetService("Players")
