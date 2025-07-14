@@ -155,7 +155,7 @@ local InstTwistedToggle = DashSection:AddToggle({
 	end
 });
 
-InstTwistedToggle.Link:AddSlider({
+InstTwistedToggle.Link:AddOption():AddSlider({
 	Name = "First Delay",
 	Min = 0,
 	Max = 1,
@@ -166,7 +166,7 @@ InstTwistedToggle.Link:AddSlider({
 	end,
 });
 
-InstTwistedToggle.Link:AddSlider({
+InstTwistedToggle.Link:AddOption():AddSlider({
 	Name = "Second Delay",
 	Min = 0,
 	Max = 1,
@@ -177,7 +177,7 @@ InstTwistedToggle.Link:AddSlider({
 	end,
 });
 
-InstTwistedToggle.Link:AddSlider({
+InstTwistedToggle.Link:AddOption():AddSlider({
 	Name = "Third Delay",
 	Min = 0,
 	Max = 1,
