@@ -28,7 +28,9 @@ getgenv().Settings = {
   DashTech = {
     ["Instaint Twisted"] = {
       Toggle = false,
-      Delay = 0.25,
+      FirstDelay = 0.25,
+      SecDelay = 0.25,
+			ThirdDelay = 0.6,
     },
   },
   Visual = {
@@ -106,13 +108,13 @@ end
 --/// Big Funcs \\\--
 local function InstaintTwisted()
   local combo = GetPlayerCombo()
-
+	local cfg   = getgenv().Settings.DashTech["Instaint Twisted"]
   if combo and combo >= 5 then
     FrontDash()
     LookAt(90)
-    task.wait(0.25)
+    task.wait(cfg.SecDelay)
     FocusCam(true)
-    task.wait(0.6)
+    task.wait(cfg.ThirdDelay)
     FocusCam(false)
   end
 end
@@ -139,16 +141,49 @@ local InstTwistedToggle = DashSection:AddToggle({
 		if state then
 			task.spawn(function()
 				local cfg   = getgenv().Settings.DashTech["Instaint Twisted"]
-				while cfg.Toggle do                   -- runs until you untick
+				while cfg.Toggle do               
 					local combo = GetPlayerCombo()
 					if combo and combo >= 5 then
 						InstaintTwisted()
-						task.wait(cfg.Delay)          -- 0 .25 s (your setting)
+						task.wait(cfg.FirstDelay)          
 					else
-						task.wait(0.1)                -- light idle wait
+						task.wait(0.1)               
 					end
 				end
 			end)
 		end
 	end
-})
+});
+
+InstTwistedToggle.Link:AddSlider({
+	Name = "First Delay",
+	Min = 0,
+	Max = 1,
+	Default = getgenv().Settings.DashTech["Instaint Twisted"].FirstDelay,
+	Round = 1,
+	Callback = function(Num)
+			getgenv().Settings.DashTech["Instaint Twisted"].FirstDelay = Num 
+	end,
+});
+
+InstTwistedToggle.Link:AddSlider({
+	Name = "Second Delay",
+	Min = 0,
+	Max = 1,
+	Default = getgenv().Settings.DashTech["Instaint Twisted"].SecDelay,
+	Round = 1,
+	Callback = function(Num)
+			getgenv().Settings.DashTech["Instaint Twisted"].SecDelay = Num 
+	end,
+});
+
+InstTwistedToggle.Link:AddSlider({
+	Name = "Third Delay",
+	Min = 0,
+	Max = 1,
+	Default = getgenv().Settings.DashTech["Instaint Twisted"].ThirdDelay,
+	Round = 1,
+	Callback = function(Num)
+			getgenv().Settings.DashTech["Instaint Twisted"].ThirdDelay = Num 
+	end,
+});
