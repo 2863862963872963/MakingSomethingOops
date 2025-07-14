@@ -45,8 +45,14 @@ local function isMobile()
 end
 
 local function FrontDash()
-	local Communicate = Character.Communicate  
-	Communicate:FireServer({Dash = Enum.KeyCode.W, Key = Enum.KeyCode.Q, Goal = "KeyPress"})
+	local Communicate = Players.LocalPlayer.Character.Communicate  
+	Communicate:FireServer(
+		{
+			Dash = Enum.KeyCode.W,
+			Key = Enum.KeyCode.Q,
+			Goal = "KeyPress"
+		}
+	)
 end
 
 local function GetPlayerCombo()
