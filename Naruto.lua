@@ -127,13 +127,22 @@ local DashSection = DashTechTab:DrawSection({ Name = "Dash", Position = 'left'	}
 local InstTwistedToggle = DashSection:AddToggle({
 	Name = "Instaint Twisted",
 	Default = false,
-	Callback = function(State)
-      getgenv().Settings.DashTech["Instaint Twisted"].Toggle = State
-      local combo = GetPlayerCombo()
-      repeat
-        InstaintTwisted()
-        task.wait(0.5)
-        combo = GetPlayerCombo()
-      until combo ~= 5
-  end,
-});
+	Callback = function(state)                 
+		getgenv().Settings.DashTech["Instaint Twisted"].Toggle = state
+
+		if state then
+			task.spawn(function()
+				local cfg   = getgenv().Settings.DashTech["Instaint Twisted"]
+				while cfg.Toggle do                   -- runs until you untick
+					local combo = GetPlayerCombo()
+					if combo and combo >= 5 then
+						InstaintTwisted()
+						task.wait(cfg.Delay)          -- 0 .25 s (your setting)
+					else
+						task.wait(0.1)                -- light idle wait
+					end
+				end
+			end)
+		end
+	end
+})
