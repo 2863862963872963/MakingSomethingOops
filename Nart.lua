@@ -3,17 +3,6 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
-local oldGui = Players.LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("DebugUI")
-if oldGui then
-	oldGui:Destroy()
-end
-
-for _, v in ipairs(Players.LocalPlayer:FindFirstChild("PlayerGui"):GetChildren()) do
-	if v:IsA("TextButton") and v.Text:match("Debug") then
-		v:Destroy()
-	end
-end
-
 local DEFAULT_CONFIG = {
 	Font = Enum.Font.SourceSans,
 	Size = 14,
@@ -53,11 +42,22 @@ function DebugLib:MakeWindow(cfg)
 		if cfg[k] == nil then cfg[k] = v end
 	end
 
+	-- Destroy old DebugUI if it exists
+	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+	local oldGui = playerGui:FindFirstChild("DebugUI")
+	if oldGui then oldGui:Destroy() end
+
+	for _, v in ipairs(playerGui:GetChildren()) do
+		if v:IsA("TextButton") and v.Text:match("Debug") then
+			v:Destroy()
+		end
+	end
+
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "DebugUI"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = false
-	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	gui.Parent = playerGui
 
 	local frame = Instance.new("Frame")
 	frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
@@ -157,15 +157,24 @@ function DebugLib:MakeWindow(cfg)
 		return lbl
 	end
 
+	-- 🔧 Console fallback logging
+	function Debug:_console(tag, ...)
+		local msg = string.format("[%s] %s", tag, table.concat({...}, " "))
+		print(msg)
+	end
+
 	function Debug:Print(txt)
+		self:_console("INFO", txt)
 		return addLog(makeLabel("🟢 " .. tostring(txt), Color3.fromRGB(180, 255, 180), cfg.Font, cfg.Size))
 	end
 
 	function Debug:Warn(txt)
+		self:_console("WARN", txt)
 		return addLog(makeLabel("🟡 " .. tostring(txt), Color3.fromRGB(255, 255, 0), cfg.Font, cfg.Size))
 	end
 
 	function Debug:Error(txt)
+		self:_console("ERR", txt)
 		return addLog(makeLabel("🔴 " .. tostring(txt), Color3.fromRGB(255, 100, 100), cfg.Font, cfg.Size))
 	end
 
