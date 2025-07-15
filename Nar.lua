@@ -45,6 +45,58 @@ local function clone(tbl)
 		if typeof(v) == "table" then
 			n[k] = clone(v)
 		elseif typeof(v) == "Color3" or typeof(v) == "UDim" or typeof(v) == "UDim2" then
+			n[k] = v /
+
+System: The artifact appears to be incomplete, as it cuts off abruptly in the `clone` function. I'll complete the script based on the previous version, ensuring all requested fixes are applied, including the removal of auto-scrolling, and maintaining the fixes for button alignment, rounded corners, and dropdown functionality. Below is the complete, updated `DebugLib.lua` script.
+
+<xaiArtifact artifact_id="1cfa85eb-c10b-4922-9766-6d7a6e12845d" artifact_version_id="6b943780-be9d-47f8-b38c-285e803b75e8" title="DebugLib.lua" contentType="text/lua">
+--------------------------------------------------------------------
+-- DebugLib.lua  •  In-game debug console with themes, buttons,
+--                 dropdowns, mobile toggle, console fallback
+-- love AI asf
+--------------------------------------------------------------------
+local Players   = game:GetService("Players")
+local RunSvc    = game:GetService("RunService")
+
+--------------------------------------------------------------------
+-- Default config --------------------------------------------------
+--------------------------------------------------------------------
+local DEFAULT_CFG = {
+	Font            = Enum.Font.SourceSans,
+	Size            = 14,
+	Draggable       = true,
+	ButtonForMobile = true,
+	MaxLogs         = 50,
+	WidthScale      = 0.4,
+	HeightScale     = 0.3,
+	Theme           = "Dark"          -- theme name or table
+}
+
+--------------------------------------------------------------------
+-- Built-in themes -------------------------------------------------
+--------------------------------------------------------------------
+local THEMES = {
+	Dark   = {BackgroundColor=Color3.fromRGB(25,25,25),  TextColor=Color3.fromRGB(255,255,255),
+	          ButtonColor=Color3.fromRGB(40,40,40),     Image=nil, Corner=8 },
+	Light  = {BackgroundColor=Color3.fromRGB(240,240,240),TextColor=Color3.fromRGB(30,30,30),
+	          ButtonColor=Color3.fromRGB(200,200,200),   Image=nil, Corner=6 },
+	Sakura = {BackgroundColor=Color3.fromRGB(255,223,235),TextColor=Color3.fromRGB(140,30,80),
+	          ButtonColor=Color3.fromRGB(255,180,210),   Image="rbxassetid://16862594479", Corner=12 },
+	Matrix = {BackgroundColor=Color3.fromRGB(0,0,0),      TextColor=Color3.fromRGB(0,255,0),
+	          ButtonColor=Color3.fromRGB(20,20,20),      Image="rbxassetid://160215216", Corner=0 }
+}
+
+--------------------------------------------------------------------
+local DebugLib = {}
+
+--------------------------------------------------------------------
+-- Helpers ---------------------------------------------------------
+local function clone(tbl)
+	local n = {}
+	for k, v in pairs(tbl) do
+		if typeof(v) == "table" then
+			n[k] = clone(v)
+		elseif typeof(v) == "Color3" or typeof(v) == "UDim" or typeof(v) == "UDim2" then
 			n[k] = v -- Roblox types are immutable or safe to copy directly
 		else
 			n[k] = v
@@ -116,6 +168,8 @@ function DebugLib:MakeWindow(cfg)
 	clearBtn.TextSize = cfg.Size
 	clearBtn.BackgroundColor3 = theme.ButtonColor
 	clearBtn.TextColor3 = theme.TextColor
+	local clearCorner = Instance.new("UICorner", clearBtn)
+	clearCorner.CornerRadius = UDim.new(0, theme.Corner or 0)
 
 	local buttonRow = Instance.new("Frame", topBar)
 	buttonRow.BackgroundTransparency = 1
@@ -124,6 +178,8 @@ function DebugLib:MakeWindow(cfg)
 	local buttonLayout = Instance.new("UIListLayout", buttonRow)
 	buttonLayout.FillDirection = Enum.FillDirection.Horizontal
 	buttonLayout.Padding = UDim.new(0, 4)
+	buttonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	buttonRow.AutomaticSize = Enum.AutomaticSize.X
 
 	-- log list
 	local listFrame = Instance.new("ScrollingFrame", frame)
@@ -148,6 +204,8 @@ function DebugLib:MakeWindow(cfg)
 		mobileBtn.BackgroundColor3 = theme.ButtonColor
 		mobileBtn.TextColor3 = theme.TextColor
 		mobileBtn.Text = "👁 Hide Debug"
+		local mobileCorner = Instance.new("UICorner", mobileBtn)
+		mobileCorner.CornerRadius = UDim.new(0, theme.Corner or 0)
 	end
 
 	----------------------------------------------------------------
@@ -161,9 +219,6 @@ function DebugLib:MakeWindow(cfg)
 			logs[1]:Destroy()
 			table.remove(logs, 1)
 		end
-		task.defer(function()
-			listFrame.CanvasPosition = Vector2.new(0, listFrame.AbsoluteCanvasSize.Y)
-		end)
 		return lbl
 	end
 
@@ -172,14 +227,22 @@ function DebugLib:MakeWindow(cfg)
 		frame.BackgroundColor3 = t.BackgroundColor
 		clearBtn.BackgroundColor3 = t.ButtonColor
 		clearBtn.TextColor3 = t.TextColor
+		local clearCorner = clearBtn:FindFirstChildOfClass("UICorner")
+		if clearCorner then clearCorner.CornerRadius = UDim.new(0, t.Corner or 0) end
 		if mobileBtn then
 			mobileBtn.BackgroundColor3 = t.ButtonColor
 			mobileBtn.TextColor3 = t.TextColor
+			local mobileCorner = mobileBtn:FindFirstChildOfClass("UICorner")
+			if mobileCorner then mobileCorner.CornerRadius = UDim.new(0, t.Corner or 0) end
 		end
 		for _, b in ipairs(buttonRow:GetChildren()) do
-			if b:IsA("TextButton") then
+			if b:IsA("TextButton") or b:IsA("Frame") then
 				b.BackgroundColor3 = t.ButtonColor
-				b.TextColor3 = t.TextColor
+				if b:IsA("TextButton") then
+					b.TextColor3 = t.TextColor
+				end
+				local btnCorner = b:FindFirstChildOfClass("UICorner")
+				if btnCorner then btnCorner.CornerRadius = UDim.new(0, t.Corner or 0) end
 			end
 		end
 		local img = frame:FindFirstChild("ThemeImage")
@@ -232,6 +295,8 @@ function DebugLib:MakeWindow(cfg)
 		b.TextSize = cfg.Size
 		b.BackgroundColor3 = theme.ButtonColor
 		b.TextColor3 = theme.TextColor
+		local btnCorner = Instance.new("UICorner", b)
+		btnCorner.CornerRadius = UDim.new(0, theme.Corner or 0)
 		if opt.Callback then b.MouseButton1Click:Connect(opt.Callback) end
 		return b
 	end
@@ -242,10 +307,15 @@ function DebugLib:MakeWindow(cfg)
 			return
 		end
 		opt = opt or {}
+		if not opt.Options or #opt.Options == 0 then
+			self:Warn("Cannot create dropdown: No valid options provided")
+			return
+		end
 		btnCount = btnCount + 1
 		local holder = Instance.new("Frame", buttonRow)
 		holder.Size = UDim2.new(0, 140, 1, 0)
 		holder.BackgroundTransparency = 1
+		holder.LayoutOrder = btnCount
 
 		local btn = Instance.new("TextButton", holder)
 		btn.Size = UDim2.new(1, 0, 1, 0)
@@ -254,18 +324,21 @@ function DebugLib:MakeWindow(cfg)
 		btn.TextSize = cfg.Size
 		btn.BackgroundColor3 = theme.ButtonColor
 		btn.TextColor3 = theme.TextColor
+		local btnCorner = Instance.new("UICorner", btn)
+		btnCorner.CornerRadius = UDim.new(0, theme.Corner or 0)
 
 		local open = false
 		btn.MouseButton1Click:Connect(function()
 			if open then return end
 			open = true
-			local popup = Instance.new("Frame", pg)
+			local popup = Instance.new("Frame", gui)
 			popup.Size = UDim2.new(0, 140, 0, #opt.Options * 22)
 			local screenSize = pg.Parent.AbsoluteSize
-			local xPos = math.min(btn.AbsolutePosition.X, screenSize.X - 140)
-			local yPos = btn.AbsolutePosition.Y + btn.AbsoluteSize.Y
+			local absPos = btn.AbsolutePosition + frame.AbsolutePosition
+			local xPos = math.min(absPos.X, screenSize.X - 140)
+			local yPos = absPos.Y + btn.AbsoluteSize.Y
 			if yPos + #opt.Options * 22 > screenSize.Y then
-				yPos = btn.AbsolutePosition.Y - #opt.Options * 22
+				yPos = absPos.Y - #opt.Options * 22
 			end
 			popup.Position = UDim2.new(0, xPos, 0, yPos)
 			popup.BackgroundColor3 = theme.ButtonColor
@@ -277,18 +350,20 @@ function DebugLib:MakeWindow(cfg)
 			local ui = Instance.new("UIListLayout", popup)
 			ui.Padding = UDim.new(0, 2)
 
-			for _, choice in ipairs(opt.Options or {}) do
+			for _, choice in ipairs(opt.Options) do
 				local item = Instance.new("TextButton", popup)
 				item.Size = UDim2.new(1, 0, 0, 20)
-				item.Text = choice
+				item.Text = tostring(choice)
 				item.Font = cfg.Font
 				item.TextSize = cfg.Size - 2
 				item.BackgroundColor3 = theme.ButtonColor
 				item.TextColor3 = theme.TextColor
 				item.ZIndex = 201
+				local itemCorner = Instance.new("UICorner", item)
+				itemCorner.CornerRadius = UDim.new(0, theme.Corner or 0)
 
 				item.MouseButton1Click:Connect(function()
-					btn.Text = choice
+					btn.Text = tostring(choice)
 					if opt.Callback then opt.Callback(choice) end
 					popup:Destroy()
 					open = false
