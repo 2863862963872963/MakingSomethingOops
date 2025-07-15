@@ -23,6 +23,8 @@ local DEFAULT_CFG = {
 --------------------------------------------------------------------
 -- Built‑in themes -------------------------------------------------
 --------------------------------------------------------------------
+
+--[[
 local THEMES = {
 	Dark   = {BackgroundColor=Color3.fromRGB(25,25,25),  TextColor=Color3.fromRGB(255,255,255),
 	          ButtonColor=Color3.fromRGB(40,40,40),     Image=nil, Corner=8 },
@@ -33,7 +35,7 @@ local THEMES = {
 	Matrix = {BackgroundColor=Color3.fromRGB(0,0,0),      TextColor=Color3.fromRGB(0,255,0),
 	          ButtonColor=Color3.fromRGB(20,20,20),      Image="rbxassetid://160215216", Corner=0 }
 }
-
+--]]
 --------------------------------------------------------------------
 local DebugLib = {}
 
