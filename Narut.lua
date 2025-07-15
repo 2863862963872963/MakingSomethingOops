@@ -3,6 +3,17 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
+local oldGui = Players.LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("DebugUI")
+if oldGui then
+	oldGui:Destroy()
+end
+
+for _, v in ipairs(Players.LocalPlayer:FindFirstChild("PlayerGui"):GetChildren()) do
+	if v:IsA("TextButton") and v.Text:match("Debug") then
+		v:Destroy()
+	end
+end
+
 local DEFAULT_CONFIG = {
 	Font = Enum.Font.SourceSans,
 	Size = 14,
@@ -18,15 +29,15 @@ local DebugLib = {}
 local function makeLabel(text, color, font, size)
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, 0, 0, size + 4)
+	lbl.Size = UDim2.new(1, 0, 0, size + 6)
 	lbl.TextColor3 = color
 	lbl.Font = font
 	lbl.TextSize = size
 	lbl.Text = text
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.RichText = true
-	lbl.AutomaticSize = Enum.AutomaticSize.Y
 	lbl.TextWrapped = true
+	lbl.AutomaticSize = Enum.AutomaticSize.Y
 	lbl.TextTruncate = Enum.TextTruncate.AtEnd
 
 	function lbl:SetText(t) self.Text = t end
@@ -142,20 +153,25 @@ function DebugLib:MakeWindow(cfg)
 			table.remove(logs, 1)
 		end
 		RunService.RenderStepped:Wait()
+		listFrame.CanvasPosition = Vector2.new(0, listFrame.AbsoluteCanvasSize.Y)
 		return lbl
 	end
 
 	function Debug:Print(txt)
 		return addLog(makeLabel("🟢 " .. tostring(txt), Color3.fromRGB(180, 255, 180), cfg.Font, cfg.Size))
 	end
+
 	function Debug:Warn(txt)
 		return addLog(makeLabel("🟡 " .. tostring(txt), Color3.fromRGB(255, 255, 0), cfg.Font, cfg.Size))
 	end
+
 	function Debug:Error(txt)
 		return addLog(makeLabel("🔴 " .. tostring(txt), Color3.fromRGB(255, 100, 100), cfg.Font, cfg.Size))
 	end
 
-	function Debug:Clear() clearLogs() end
+	function Debug:Clear()
+		clearLogs()
+	end
 
 	function Debug:Visible(state)
 		frame.Visible = state
@@ -177,7 +193,9 @@ function DebugLib:MakeWindow(cfg)
 		btn.AutoButtonColor = true
 		btn.Parent = buttonRow
 		buttonCount += 1
-		if opts.Callback then btn.MouseButton1Click:Connect(opts.Callback) end
+		if opts.Callback then
+			btn.MouseButton1Click:Connect(opts.Callback)
+		end
 		return btn
 	end
 
