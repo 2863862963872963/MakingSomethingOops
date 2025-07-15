@@ -28,11 +28,6 @@ local function makeLabel(text, color, font, size)
 	lbl.TextWrapped = true
 	lbl.AutomaticSize = Enum.AutomaticSize.Y
 	lbl.TextTruncate = Enum.TextTruncate.AtEnd
-
-	function lbl:SetText(t) self.Text = t end
-	function lbl:SetColor(c) self.TextColor3 = c end
-	function lbl:Remove() self:Destroy() end
-
 	return lbl
 end
 
@@ -42,10 +37,10 @@ function DebugLib:MakeWindow(cfg)
 		if cfg[k] == nil then cfg[k] = v end
 	end
 
-	-- Destroy old DebugUI if it exists
+	-- Destroy old Debug UI
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-	local oldGui = playerGui:FindFirstChild("DebugUI")
-	if oldGui then oldGui:Destroy() end
+	local old = playerGui:FindFirstChild("DebugUI")
+	if old then old:Destroy() end
 
 	for _, v in ipairs(playerGui:GetChildren()) do
 		if v:IsA("TextButton") and v.Text:match("Debug") then
@@ -157,7 +152,7 @@ function DebugLib:MakeWindow(cfg)
 		return lbl
 	end
 
-	-- 🔧 Console fallback logging
+	-- Always log to console too
 	function Debug:_console(tag, ...)
 		local msg = string.format("[%s] %s", tag, table.concat({...}, " "))
 		print(msg)
