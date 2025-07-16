@@ -30,7 +30,7 @@ getgenv().Settings = {
       Toggle = false,
       FirstDelay = 0.25,
       SecDelay = 0.25,
-			ThirdDelay = 0.6,
+      ThirdDelay = 0.6,
     },
   },
   Visual = {
@@ -110,6 +110,7 @@ local function InstaintTwisted()
   local combo = GetPlayerCombo()
 	local cfg   = getgenv().Settings.DashTech["Instaint Twisted"]
   if combo and combo >= 5 then
+    task.wait(0.25)
     FrontDash()
     LookAt(90)
     task.wait(cfg.SecDelay)
