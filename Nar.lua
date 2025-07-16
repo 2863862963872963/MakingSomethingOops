@@ -28,6 +28,7 @@ getgenv().Settings = {
   DashTech = {
     ["Instaint Twisted"] = {
       Toggle = false,
+	  B4Dash = 0.25,
       FirstDelay = 0.25,
       SecDelay = 0.25,
       ThirdDelay = 0.6,
@@ -110,7 +111,7 @@ local function InstaintTwisted()
   local combo = GetPlayerCombo()
 	local cfg   = getgenv().Settings.DashTech["Instaint Twisted"]
   if combo and combo >= 5 then
-    task.wait(0.25)
+    task.wait(cfg.B4Dash)
     FrontDash()
     LookAt(90)
     task.wait(cfg.SecDelay)
@@ -155,8 +156,20 @@ local InstTwistedToggle = DashSection:AddToggle({
 		end
 	end
 });
+DelayTwisted = InstTwistedToggle.Link:AddOption()
 
-InstTwistedToggle.Link:AddOption():AddSlider({
+DelayTwisted:AddSlider({
+	Name = "Delay before dash",
+	Min = 0,
+	Max = 1,
+	Default = getgenv().Settings.DashTech["Instaint Twisted"].B4Dash,
+	Round = 1,
+	Callback = function(Num)
+			getgenv().Settings.DashTech["Instaint Twisted"].B4Dash = Num 
+	end,
+});
+
+DelayTwisted:AddSlider({
 	Name = "First Delay",
 	Min = 0,
 	Max = 1,
@@ -167,7 +180,7 @@ InstTwistedToggle.Link:AddOption():AddSlider({
 	end,
 });
 
-InstTwistedToggle.Link:AddOption():AddSlider({
+DelayTwisted:AddSlider({
 	Name = "Second Delay",
 	Min = 0,
 	Max = 1,
@@ -178,7 +191,7 @@ InstTwistedToggle.Link:AddOption():AddSlider({
 	end,
 });
 
-InstTwistedToggle.Link:AddOption():AddSlider({
+DelayTwisted:AddSlider({
 	Name = "Third Delay",
 	Min = 0,
 	Max = 1,
