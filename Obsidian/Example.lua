@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian%20(14).lua"))()
 local Window = Library:CreateWindow({
     Title = "Obsidian",
     Footer = "v2.0",
@@ -7,6 +7,7 @@ local Window = Library:CreateWindow({
     AutoResizeMobile = false, -- use exact size on mobile, no auto-fit
     DisableToggle = true,     -- UI always visible, no keybind/button
     AutoShow = true,
+    ConfigPath = "MyScript/configs",  -- folder to store all configs
 })
 
 Library:SetDPIScale(75)
