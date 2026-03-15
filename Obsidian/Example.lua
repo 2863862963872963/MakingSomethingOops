@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian%20(11).lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian.lua"))()
 local Window = Library:CreateWindow({
     Title = "Obsidian",
     Footer = "v2.0",
@@ -110,6 +110,40 @@ do
             if setclipboard then setclipboard(game.JobId) end
         end,
     })
+
+    -- Plain fade (no text) — line fades at both ends
+Right:AddDivider({ Variant = "Fade" })
+
+-- Default with text (original behaviour)
+Right:AddDivider({ Text = "Settings" })
+
+-- Fade + text — arms fade outward from the label
+Right:AddDivider({
+    Variant = "Fade",
+    Text    = "Combat",
+})
+
+-- Fade + icon + text
+Right:AddDivider({
+    Variant  = "Fade",
+    Text     = "Movement",
+    Icon     = "footprints",
+    TextSize = 12,
+})
+
+-- Margins still work on all variants
+Right:AddDivider({
+    Variant      = "Fade",
+    Text         = "Section",
+    MarginTop    = 4,
+    MarginBottom = 4,
+})
+
+-- Default (no fade) with icon
+Right:AddDivider({
+    Text = "Aimbot",
+    Icon = "crosshair",
+})
 end
 
 do
