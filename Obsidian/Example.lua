@@ -1,159 +1,408 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/Library.lua"))()
-
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian%20(10).lua"))()
 local Window = Library:CreateWindow({
-    Title   = "Example",
-    Footer  = "v3.0",
-    Icon    = "layers",
-    Center  = true,
+    Title = "Obsidian",
+    Footer = "v2.0",
+    Center = false,
+    Size = UDim2.fromOffset(700, 500),
+    AutoResizeMobile = false, -- use exact size on mobile, no auto-fit
+    DisableToggle = true,     -- UI always visible, no keybind/button
     AutoShow = true,
-    ToggleKeybind = Enum.KeyCode.RightControl,
-
-    -- Custom toggle button (variant 2 = icon button, always visible)
-    ToggleUiVariant = 2,
-    ToggleUiButton = {
-        Shape       = "Circle",
-        Size        = UDim2.fromOffset(44, 44),
-        Position    = UDim2.fromOffset(8, 8),
-        Side        = "Left",
-        OpenIcon    = "x",
-        ClosedIcon  = "menu",
-        ShowLock    = true,
-    },
 })
 
-Library:SetTheme("Midnight")
+Library:SetDPIScale(75)
 
-Library:SetStyle({
-    AccentStrip          = true,
-    HeaderGradient       = true,
-    CollapseAnimation    = true,
-    AnimationSpeed       = 0.12,
-    ElementIconSize      = 16,
-    WindowTransparency   = 0,
-    GroupboxTransparency = 0,
-})
 
 local Tabs = {
-    Main     = Window:AddTab("Main",     "home"),
-    Combat   = Window:AddTab("Combat",   "sword"),
-    Visual   = Window:AddTab("Visual",   "eye"),
-    Settings = Window:AddTab("Settings", "settings"),
+    Main    = Window:AddTab({ Name = "Main",    Icon = "home" }),
+    Combat  = Window:AddTab({ Name = "Combat",  Icon = "sword" }),
+    Visual  = Window:AddTab({ Name = "Visual",  Icon = "eye" }),
+    Player  = Window:AddTab({ Name = "Player",  Icon = "user" }),
+    Misc    = Window:AddTab({ Name = "Misc",    Icon = "settings" }),
 }
 
--- Built-in settings page with config profiles baked in
-Tabs.Settings:AddSettingPage()
+local Toggles = Library.Toggles
+local Options = Library.Options
 
--- MAIN TAB
 do
-    local Left  = Tabs.Main:AddLeftGroupbox("Movement", "footprints")
-    local Right = Tabs.Main:AddRightGroupbox("World", "globe", { Collapsed = true })
+    local Left  = Tabs.Main:AddLeftGroupbox("General", { IconName = "layout-dashboard", Collapsible = true })
+    local Right = Tabs.Main:AddRightGroupbox("Session", { IconName = "activity", Collapsible = true, DefaultCollapsed = false })
 
-    Left:AddToggle("SpeedEnabled", {
-        Text = "Speed Hack", Icon = "zap", Default = false,
-        Callback = function(v)
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v and Toggles.WalkSpeed.Value or 16
-        end,
+    Left:AddToggle("MainEnabled", {
+        Text    = "Enable Script",
+        Default = false,
+        Icon    = "power",
+        Callback = function(v) end,
     })
+
+    Left:AddToggle("AutoFarm", {
+        Text    = "Auto Farm",
+        Default = false,
+        Icon    = "refresh-cw",
+    })
+
+    Left:AddToggle("AntiAFK", {
+        Text    = "Anti AFK",
+        Default = true,
+        Icon    = "clock",
+    })
+
+    Left:AddDivider()
+
     Left:AddSlider("WalkSpeed", {
-        Text = "Walk Speed", Icon = "gauge",
-        Default = 16, Min = 16, Max = 250, Rounding = 0,
+        Text    = "Walk Speed",
+        Default = 16,
+        Min     = 1,
+        Max     = 250,
+        Icon    = "gauge",
     })
+
     Left:AddSlider("JumpPower", {
-        Text = "Jump Power", Icon = "chevrons-up",
-        Default = 50, Min = 50, Max = 300, Rounding = 0,
+        Text    = "Jump Power",
+        Default = 50,
+        Min     = 1,
+        Max     = 500,
+        Icon    = "arrow-up",
     })
 
-    Left:AddFadeDivider()
-    Left:AddToggle("NoclipEnabled", { Text = "Noclip", Icon = "ghost", Default = false })
-    Left:AddToggle("FlyEnabled",    { Text = "Fly",    Icon = "wind",  Default = false })
+    Left:AddDivider()
 
-    Left:AddFadeDivider("Actions")
-    Left:AddButton({
-        Text = "Reset Position", Icon = "rotate-ccw",
+    Left:AddInput("TargetPlayer", {
+        Text        = "Target Player",
+        Placeholder = "Username",
+        Icon        = "user-search",
+    })
+
+    Left:AddDropdown("GameMode", {
+        Text   = "Game Mode",
+        Values = { "Normal", "Hardcore", "Sandbox" },
+        Icon   = "gamepad-2",
+    })
+
+    Right:AddLabel({ Text = "Script loaded successfully.", Icon = "check-circle" })
+    Right:AddLabel({ Text = "Server: " .. game.JobId:sub(1, 8), Icon = "server" })
+
+    Right:AddDivider()
+
+    Right:AddButton({
+        Text = "Rejoin Server",
+        Icon = "rotate-cw",
         Func = function()
-            local char = game.Players.LocalPlayer.Character
-            if char then char:MoveTo(Vector3.new(0, 5, 0)) end
+            game:GetService("TeleportService"):Teleport(game.PlaceId)
         end,
+    })
+
+    Right:AddButton({
+        Text  = "Copy Job ID",
+        Icon  = "clipboard",
+        Func  = function()
+            if setclipboard then setclipboard(game.JobId) end
+        end,
+    })
+end
+
+do
+    local Left  = Tabs.Combat:AddLeftGroupbox("Aimbot", { IconName = "crosshair", Collapsible = true })
+    local Right = Tabs.Combat:AddRightGroupbox("Prediction", { IconName = "move-3d", Collapsible = true })
+
+    Left:AddToggle("AimbotEnabled", {
+        Text    = "Aimbot",
+        Default = false,
+        Icon    = "crosshair",
+        Risky   = true,
+    })
+
+    Left:AddToggle("AimbotVisible", {
+        Text    = "Visible Check",
+        Default = true,
+        Icon    = "eye",
+    })
+
+    Left:AddSlider("AimbotFOV", {
+        Text    = "FOV",
+        Default = 90,
+        Min     = 10,
+        Max     = 360,
+        Suffix  = "°",
+        Icon    = "scan",
+    })
+
+    Left:AddSlider("AimbotSmooth", {
+        Text    = "Smoothness",
+        Default = 5,
+        Min     = 1,
+        Max     = 20,
+        Icon    = "wind",
+    })
+
+    Left:AddDropdown("AimbotPart", {
+        Text   = "Target Part",
+        Values = { "Head", "HumanoidRootPart", "Torso" },
+        Icon   = "aim",
+    })
+
+    Left:AddDivider()
+
+    Left:AddToggle("SilentAim", {
+        Text    = "Silent Aim",
+        Default = false,
+        Icon    = "ghost",
+        Risky   = true,
+    })
+
+    Right:AddToggle("PredictionEnabled", {
+        Text    = "Prediction",
+        Default = false,
+        Icon    = "activity",
+    })
+
+    Right:AddSlider("PredictionValue", {
+        Text    = "Prediction Value",
+        Default = 0,
+        Min     = -1,
+        Max     = 1,
+        Rounding = 2,
+        Icon    = "sliders-horizontal",
+    })
+
+    Right:AddDivider()
+
+    Right:AddToggle("AutoShoot", {
+        Text    = "Auto Shoot",
+        Default = false,
+        Icon    = "zap",
+        Risky   = true,
+    })
+
+    Right:AddToggle("TriggerBot", {
+        Text    = "Trigger Bot",
+        Default = false,
+        Icon    = "mouse-pointer-click",
+    })
+
+    Right:AddSlider("TriggerDelay", {
+        Text    = "Trigger Delay (ms)",
+        Default = 50,
+        Min     = 0,
+        Max     = 500,
+        Icon    = "timer",
+    })
+end
+
+do
+    local Left  = Tabs.Visual:AddLeftGroupbox("ESP", { IconName = "scan-eye", Collapsible = true })
+    local Right = Tabs.Visual:AddRightGroupbox("World", { IconName = "globe", Collapsible = true, DefaultCollapsed = true })
+
+    Left:AddToggle("ESPEnabled", {
+        Text    = "Player ESP",
+        Default = false,
+        Icon    = "users",
+    })
+
+    Left:AddToggle("ESPBoxes", {
+        Text    = "Boxes",
+        Default = true,
+        Icon    = "square",
+    })
+
+    Left:AddToggle("ESPNames", {
+        Text    = "Names",
+        Default = true,
+        Icon    = "tag",
+    })
+
+    Left:AddToggle("ESPDistance", {
+        Text    = "Distance",
+        Default = false,
+        Icon    = "ruler",
+    })
+
+    Left:AddToggle("ESPHealth", {
+        Text    = "Health Bar",
+        Default = true,
+        Icon    = "heart",
+    })
+
+    Left:AddDivider()
+
+    Left:AddSlider("ESPMaxDistance", {
+        Text    = "Max Distance",
+        Default = 1000,
+        Min     = 100,
+        Max     = 5000,
+        Suffix  = " studs",
+        Icon    = "maximize",
     })
 
     Right:AddToggle("Fullbright", {
-        Text = "Fullbright", Icon = "sun", Default = false,
-        Callback = function(v) game.Lighting.Brightness = v and 10 or 1 end,
+        Text    = "Fullbright",
+        Default = false,
+        Icon    = "sun",
     })
-    Right:AddSlider("TimeOfDay", {
-        Text = "Time of Day", Icon = "clock",
-        Default = 14, Min = 0, Max = 24, Rounding = 1,
-        Callback = function(v) game.Lighting.ClockTime = v end,
+
+    Right:AddToggle("NoFog", {
+        Text    = "No Fog",
+        Default = false,
+        Icon    = "cloud-off",
+    })
+
+    Right:AddSlider("Brightness", {
+        Text    = "Brightness",
+        Default = 1,
+        Min     = 0,
+        Max     = 10,
+        Rounding = 1,
+        Icon    = "lamp",
+    })
+
+    Right:AddDropdown("SkyBox", {
+        Text   = "Sky Theme",
+        Values = { "Default", "Night", "Sunset", "Storm" },
+        Icon   = "cloud",
     })
 end
 
--- COMBAT TAB
 do
-    local Left  = Tabs.Combat:AddLeftGroupbox("Aimbot", "crosshair")
-    local Right = Tabs.Combat:AddRightGroupbox("Misc", "shield", { Collapsed = true })
+    local Left  = Tabs.Player:AddLeftGroupbox("Character", { IconName = "person-standing", Collapsible = true })
+    local Right = Tabs.Player:AddRightGroupbox("Movement", { IconName = "footprints", Collapsible = true })
 
-    Left:AddToggle("AimbotEnabled", { Text = "Aimbot",     Icon = "target",      Default = false })
-    Left:AddSlider("AimbotFOV",     { Text = "FOV",        Icon = "maximize-2",  Default = 90,  Min = 10, Max = 360, Suffix = "°" })
-    Left:AddSlider("AimbotSmooth",  { Text = "Smoothness", Icon = "activity",    Default = 5,   Min = 1,  Max = 20,  Rounding = 1 })
-    Left:AddDropdown("AimbotPart",  { Text = "Target Part", Values = { "Head", "HumanoidRootPart", "Torso" }, Default = "Head" })
-    Left:AddFadeDivider("Risky")
-    Left:AddToggle("SilentAim", { Text = "Silent Aim", Icon = "eye-off", Default = false, Risky = true })
+    Left:AddToggle("Godmode", {
+        Text    = "Godmode",
+        Default = false,
+        Icon    = "shield",
+        Risky   = true,
+    })
 
-    Right:AddToggle("InfiniteAmmo", { Text = "Infinite Ammo", Icon = "package",      Default = false })
-    Right:AddToggle("AutoReload",   { Text = "Auto Reload",   Icon = "refresh-cw",   Default = false })
-    Right:AddSlider("Recoil",       { Text = "Recoil Reduction", Icon = "trending-down", Default = 0, Min = 0, Max = 100, Suffix = "%" })
+    Left:AddToggle("InfStamina", {
+        Text    = "Inf Stamina",
+        Default = false,
+        Icon    = "battery-charging",
+    })
+
+    Left:AddToggle("AutoHeal", {
+        Text    = "Auto Heal",
+        Default = false,
+        Icon    = "heart-pulse",
+    })
+
+    Left:AddDivider()
+
+    Left:AddButton({
+        Text = "Reset Character",
+        Icon = "refresh-ccw",
+        Risky = true,
+        Func  = function()
+            game:GetService("Players").LocalPlayer.Character:FindFirstChild("Humanoid").Health = 0
+        end,
+    })
+
+    Right:AddToggle("Noclip", {
+        Text    = "Noclip",
+        Default = false,
+        Icon    = "layers",
+        Risky   = true,
+    })
+
+    Right:AddToggle("Flight", {
+        Text    = "Fly",
+        Default = false,
+        Icon    = "plane",
+    })
+
+    Right:AddSlider("FlySpeed", {
+        Text    = "Fly Speed",
+        Default = 50,
+        Min     = 5,
+        Max     = 500,
+        Icon    = "wind",
+    })
+
+    Right:AddDivider()
+
+    Right:AddToggle("InfJump", {
+        Text    = "Infinite Jump",
+        Default = false,
+        Icon    = "chevrons-up",
+    })
+
+    Right:AddSlider("Gravity", {
+        Text    = "Gravity",
+        Default = 196,
+        Min     = 0,
+        Max     = 500,
+        Icon    = "arrow-down-to-line",
+    })
 end
 
--- VISUAL TAB
 do
-    local Left  = Tabs.Visual:AddLeftGroupbox("ESP",   "scan")
-    local Right = Tabs.Visual:AddRightGroupbox("Misc", "sparkles")
+    local Left  = Tabs.Misc:AddLeftGroupbox("Interface", { IconName = "layout", Collapsible = true })
+    local Right = Tabs.Misc:AddRightGroupbox("Danger Zone", { IconName = "triangle-alert", Collapsible = true, DefaultCollapsed = true })
 
-    Left:AddToggle("ESPEnabled",   { Text = "ESP",       Icon = "scan-eye", Default = false })
-    Left:AddToggle("ESPBoxes",     { Text = "Boxes",     Icon = "box",      Default = true  })
-    Left:AddToggle("ESPNames",     { Text = "Names",     Icon = "type",     Default = true  })
-    Left:AddToggle("ESPHealthbar", { Text = "Healthbar", Icon = "heart",    Default = true  })
-    Left:AddFadeDivider("Colors")
-    Left:AddColorPicker("ESPColor", { Text = "ESP Color", Default = Color3.fromRGB(255, 50, 50) })
+    Left:AddToggle("ShowCursor", {
+        Text    = "Custom Cursor",
+        Default = true,
+        Icon    = "mouse-pointer",
+        Callback = function(v)
+            Library.ShowCustomCursor = v
+        end,
+    })
 
-    Right:AddToggle("ChamsEnabled",   { Text = "Chams",         Icon = "sparkles", Default = false })
-    Right:AddToggle("ChamsWallcheck", { Text = "Through Walls", Icon = "layers",   Default = false })
-    Right:AddColorPicker("ChamsColor", { Text = "Chams Color",  Default = Color3.fromRGB(100, 180, 255) })
+    Left:AddDropdown("NotifySide", {
+        Text   = "Notification Side",
+        Values = { "Right", "Left" },
+        Icon   = "bell",
+        Callback = function(v)
+            Library:SetNotifySide(v)
+        end,
+    })
+
+    Left:AddDropdown("UITheme", {
+        Text   = "Theme",
+        Values = Library:GetThemeNames(),
+        Default = "Obsidian",
+        Icon   = "palette",
+        Callback = function(v)
+            Library:SetTheme(v)
+        end,
+    })
+
+    Left:AddSlider("UITransparency", {
+        Text     = "UI Transparency",
+        Default  = 0,
+        Min      = 0,
+        Max      = 90,
+        Rounding = 0,
+        Suffix   = "%",
+        Icon     = "blend",
+        Callback = function(v)
+            Library:SetUITransparency(v / 100)
+        end,
+    })
+
+    Left:AddDivider()
+
+    Left:AddButton({
+        Text = "Test Notification",
+        Icon = "bell-ring",
+        Func = function()
+            Library:Notify({
+                Title       = "Obsidian",
+                Description = "This is a test notification.",
+                Icon        = "info",
+                Time        = 4,
+            })
+        end,
+    })
+
+    Right:AddLabel({ Text = "These actions are irreversible.", Icon = "triangle-alert" })
+    Right:AddDivider()
+
+    Right:AddButton({
+        Text      = "Unload Script",
+        Icon      = "log-out",
+        Risky     = true,
+        DoubleClick = true,
+        Func      = function()
+            Library:Unload()
+        end,
+    })
 end
-
--- Demo notifications on load
-task.delay(1, function()
-    -- Normal timed notification (click to dismiss)
-    Library:Notify({
-        Title       = "Welcome",
-        Description = "Click anywhere on this to dismiss early.",
-        Icon        = "check-circle",
-        Time        = 6,
-        ClickDismiss = true,
-    })
-end)
-
-task.delay(2.5, function()
-    -- Progress bar notification (manually driven)
-    local N = Library:Notify({
-        Title       = "Loading Assets",
-        Description = "Downloading resources...",
-        Icon        = "download",
-        Style       = "Progress",
-    })
-
-    task.spawn(function()
-        for i = 1, 10 do
-            task.wait(0.3)
-            N:SetProgress(i / 10)
-            if i == 10 then
-                N:ChangeDescription("Done!")
-            end
-        end
-    end)
-end)
-
--- Auto-load default config on start if it exists
-task.defer(function()
-    Library:LoadConfig("default")
-end)
