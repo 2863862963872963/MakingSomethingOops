@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian%20(10).lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian%20(11).lua"))()
 local Window = Library:CreateWindow({
     Title = "Obsidian",
     Footer = "v2.0",
@@ -11,6 +11,18 @@ local Window = Library:CreateWindow({
 
 Library:SetDPIScale(75)
 
+local Toggle = Library:CustomToggleUi({
+    Shape       = "Circle",                    -- "Circle" | "Square" | "Rounded"
+    Size        = UDim2.fromOffset(44, 44),
+    Position    = UDim2.new(1, -54, 0, 10),    -- top-right corner
+    OpenedIcon  = "x",                         -- lucide icon when UI is open
+    ClosedIcon  = "menu",                      -- lucide icon when UI is closed
+    OpenedColor = Color3.fromRGB(110, 75, 255),
+    ClosedColor = Color3.fromRGB(20, 20, 24),
+    Draggable   = true,
+    OnlyMobile  = false,                       -- set true to only show on mobile
+    ZIndex      = 10,
+})
 
 local Tabs = {
     Main    = Window:AddTab({ Name = "Main",    Icon = "home" }),
