@@ -1,455 +1,815 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/2863862963872963/uis-vault/refs/heads/main/Obsidian/Obsidian%20(14).lua"))()
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ForceCheckbox = false
+Library.ShowToggleFrameInKeybinds = true
+Library.NotifyOnError = false
+
 local Window = Library:CreateWindow({
-    Title = "Obsidian",
-    Footer = "v2.0",
-    Center = false,
-    Size = UDim2.fromOffset(700, 500),
-    AutoResizeMobile = false, -- use exact size on mobile, no auto-fit
-    DisableToggle = true,     -- UI always visible, no keybind/button
-    AutoShow = true,
-    ConfigPath = "MyScript/configs",  -- folder to store all configs
-})
-
-Library:SetDPIScale(75)
-
-local Toggle = Library:CustomToggleUi({
-    Shape       = "Circle",                    -- "Circle" | "Square" | "Rounded"
-    Size        = UDim2.fromOffset(44, 44),
-    Position    = UDim2.new(1, -54, 0, 10),    -- top-right corner
-    OpenedIcon  = "x",                         -- lucide icon when UI is open
-    ClosedIcon  = "menu",                      -- lucide icon when UI is closed
-    OpenedColor = Color3.fromRGB(110, 75, 255),
-    ClosedColor = Color3.fromRGB(20, 20, 24),
-    Draggable   = true,
-    OnlyMobile  = false,                       -- set true to only show on mobile
-    ZIndex      = 10,
+	Title = "Obsidian",
+	Footer = "version: full",
+	Icon = 95816097006870,
+	Center = true,
+	AutoShow = true,
+	Resizable = true,
+	NotifySide = "Right",
+	ShowCustomCursor = true,
+	EnableSidebarResize = true,
+	EnableCompacting = true,
+	SidebarCompacted = false,
+	MinSidebarWidth = 128,
+	ToggleKeybind = Enum.KeyCode.RightControl,
+	MobileButtonsSide = "Left",
+	GlobalSearch = false,
 })
 
 local Tabs = {
-    Main    = Window:AddTab({ Name = "Main",    Icon = "home" }),
-    Combat  = Window:AddTab({ Name = "Combat",  Icon = "sword" }),
-    Visual  = Window:AddTab({ Name = "Visual",  Icon = "eye" }),
-    Player  = Window:AddTab({ Name = "Player",  Icon = "user" }),
-    Misc    = Window:AddTab({ Name = "Misc",    Icon = "settings" }),
+	Main = Window:AddTab("Main", "house"),
+	Sliders = Window:AddTab("Sliders", "sliders-horizontal"),
+	Dropdowns = Window:AddTab("Dropdowns", "chevrons-up-down"),
+	Pickers = Window:AddTab("Pickers", "pipette"),
+	Notify = Window:AddTab("Notify", "bell"),
+	Key = Window:AddKeyTab("Key System"),
+	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
 }
 
-local Toggles = Library.Toggles
-local Options = Library.Options
-
-do
-    local Left  = Tabs.Main:AddLeftGroupbox("General", { IconName = "layout-dashboard", Collapsible = true })
-    local Right = Tabs.Main:AddRightGroupbox("Session", { IconName = "activity", Collapsible = true, DefaultCollapsed = false })
-
-    Left:AddToggle("MainEnabled", {
-        Text    = "Enable Script",
-        Default = false,
-        Icon    = "power",
-        Callback = function(v) end,
-    })
-
-    Left:AddToggle("AutoFarm", {
-        Text    = "Auto Farm",
-        Default = false,
-        Icon    = "refresh-cw",
-    })
-
-    Left:AddToggle("AntiAFK", {
-        Text    = "Anti AFK",
-        Default = true,
-        Icon    = "clock",
-    })
-
-    Left:AddDivider()
-
-    Left:AddSlider("WalkSpeed", {
-        Text    = "Walk Speed",
-        Default = 16,
-        Min     = 1,
-        Max     = 250,
-        Icon    = "gauge",
-    })
-
-    Left:AddSlider("JumpPower", {
-        Text    = "Jump Power",
-        Default = 50,
-        Min     = 1,
-        Max     = 500,
-        Icon    = "arrow-up",
-    })
-
-    Left:AddDivider()
-
-    Left:AddInput("TargetPlayer", {
-        Text        = "Target Player",
-        Placeholder = "Username",
-        Icon        = "user-search",
-    })
-
-    Left:AddDropdown("GameMode", {
-        Text   = "Game Mode",
-        Values = { "Normal", "Hardcore", "Sandbox" },
-        Icon   = "gamepad-2",
-    })
-
-    Right:AddLabel({ Text = "Script loaded successfully.", Icon = "check-circle" })
-    Right:AddLabel({ Text = "Server: " .. game.JobId:sub(1, 8), Icon = "server" })
-
-    Right:AddDivider()
-
-    Right:AddButton({
-        Text = "Rejoin Server",
-        Icon = "rotate-cw",
-        Func = function()
-            game:GetService("TeleportService"):Teleport(game.PlaceId)
-        end,
-    })
-
-    Right:AddButton({
-        Text  = "Copy Job ID",
-        Icon  = "clipboard",
-        Func  = function()
-            if setclipboard then setclipboard(game.JobId) end
-        end,
-    })
-
-    -- Plain fade (no text) — line fades at both ends
-Right:AddDivider({ Variant = "Fade" })
-
--- Default with text (original behaviour)
-Right:AddDivider({ Text = "Settings" })
-
--- Fade + text — arms fade outward from the label
-Right:AddDivider({
-    Variant = "Fade",
-    Text    = "Combat",
+Tabs["UI Settings"]:UpdateWarningBox({
+	Visible = true,
+	Title = "Warning",
+	Text = "Changes here affect the global UI appearance.",
 })
 
--- Fade + icon + text
-Right:AddDivider({
-    Variant  = "Fade",
-    Text     = "Movement",
-    Icon     = "footprints",
-    TextSize = 12,
+local LeftGroup = Tabs.Main:AddLeftGroupbox("Controls", "toggle-right")
+local RightGroup = Tabs.Main:AddRightGroupbox("Actions", "mouse-pointer-click")
+
+LeftGroup:AddToggle("MyToggle", {
+	Text = "Enable feature",
+	Default = true,
+	Risky = false,
+	Tooltip = "Turns the main feature on/off",
+	DisabledTooltip = "Locked",
+	Disabled = false,
+	Visible = true,
+	Callback = function(Value)
+		print("[cb] MyToggle:", Value)
+	end,
+})
+:AddColorPicker("ToggleColor", {
+	Default = Color3.fromRGB(125, 85, 255),
+	Title = "Feature color",
+	Transparency = 0,
+	Callback = function(Value)
+		print("[cb] ToggleColor:", Value)
+	end,
+})
+:AddKeyPicker("ToggleKey", {
+	Default = "F",
+	Mode = "Toggle",
+	SyncToggleState = true,
+	Text = "Feature keybind",
+	NoUI = false,
+	Callback = function(Value)
+		print("[cb] ToggleKey state:", Value)
+	end,
+	ChangedCallback = function(NewKey, NewMods)
+		print("[cb] ToggleKey changed:", NewKey, table.unpack(NewMods or {}))
+	end,
 })
 
--- Margins still work on all variants
-Right:AddDivider({
-    Variant      = "Fade",
-    Text         = "Section",
-    MarginTop    = 4,
-    MarginBottom = 4,
+Toggles.MyToggle:OnChanged(function()
+	print("MyToggle:", Toggles.MyToggle.Value)
+end)
+
+Toggles.MyToggle:SetValue(false)
+
+LeftGroup:AddToggle("RiskyToggle", {
+	Text = "Risky action",
+	Default = false,
+	Risky = true,
+	Tooltip = "This is risky",
+	Callback = function(Value)
+		print("[cb] RiskyToggle:", Value)
+	end,
 })
 
--- Default (no fade) with icon
-Right:AddDivider({
-    Text = "Aimbot",
-    Icon = "crosshair",
+LeftGroup:AddDivider()
+
+LeftGroup:AddCheckbox("MyCheckbox", {
+	Text = "Checkbox option",
+	Default = true,
+	Tooltip = "Always box style",
+	DisabledTooltip = "Locked",
+	Disabled = false,
+	Visible = true,
+	Callback = function(Value)
+		print("[cb] MyCheckbox:", Value)
+	end,
 })
-end
 
-do
-    local Left  = Tabs.Combat:AddLeftGroupbox("Aimbot", { IconName = "crosshair", Collapsible = true })
-    local Right = Tabs.Combat:AddRightGroupbox("Prediction", { IconName = "move-3d", Collapsible = true })
+Toggles.MyCheckbox:OnChanged(function()
+	print("MyCheckbox:", Toggles.MyCheckbox.Value)
+end)
 
-    Left:AddToggle("AimbotEnabled", {
-        Text    = "Aimbot",
-        Default = false,
-        Icon    = "crosshair",
-        Risky   = true,
-    })
+local DepBox = LeftGroup:AddDependencyBox()
+DepBox:SetupDependencies({ { Toggles.MyToggle, true } })
 
-    Left:AddToggle("AimbotVisible", {
-        Text    = "Visible Check",
-        Default = true,
-        Icon    = "eye",
-    })
+DepBox:AddToggle("SubToggle", {
+	Text = "Sub-feature",
+	Default = false,
+	Callback = function(Value)
+		print("[cb] SubToggle:", Value)
+	end,
+})
 
-    Left:AddSlider("AimbotFOV", {
-        Text    = "FOV",
-        Default = 90,
-        Min     = 10,
-        Max     = 360,
-        Suffix  = "°",
-        Icon    = "scan",
-    })
+DepBox:AddSlider("SubSlider", {
+	Text = "Sub intensity",
+	Default = 50,
+	Min = 0,
+	Max = 100,
+	Rounding = 0,
+	Suffix = "%",
+})
 
-    Left:AddSlider("AimbotSmooth", {
-        Text    = "Smoothness",
-        Default = 5,
-        Min     = 1,
-        Max     = 20,
-        Icon    = "wind",
-    })
+LeftGroup:AddDivider({ Text = "Labels" })
 
-    Left:AddDropdown("AimbotPart", {
-        Text   = "Target Part",
-        Values = { "Head", "HumanoidRootPart", "Torso" },
-        Icon   = "aim",
-    })
+LeftGroup:AddLabel("Plain label")
+LeftGroup:AddLabel("Wrapping label\n\nLine two here.", true)
+LeftGroup:AddLabel("IndexedLabel", {
+	Text = "Label with index",
+	DoesWrap = false,
+})
 
-    Left:AddDivider()
+task.delay(3, function()
+	if Options.IndexedLabel then
+		Options.IndexedLabel:SetText("Updated at t=3s")
+	end
+end)
 
-    Left:AddToggle("SilentAim", {
-        Text    = "Silent Aim",
-        Default = false,
-        Icon    = "ghost",
-        Risky   = true,
-    })
+local MyButton = RightGroup:AddButton({
+	Text = "Run action",
+	Func = function()
+		print("Action ran!")
+	end,
+	DoubleClick = false,
+	Tooltip = "Single click",
+	DisabledTooltip = "Locked",
+	Disabled = false,
+	Visible = true,
+	Risky = false,
+})
 
-    Right:AddToggle("PredictionEnabled", {
-        Text    = "Prediction",
-        Default = false,
-        Icon    = "activity",
-    })
+MyButton:AddButton({
+	Text = "Confirm (double-click)",
+	Func = function()
+		print("Confirmed!")
+	end,
+	DoubleClick = true,
+	Tooltip = "Double click to confirm",
+})
 
-    Right:AddSlider("PredictionValue", {
-        Text    = "Prediction Value",
-        Default = 0,
-        Min     = -1,
-        Max     = 1,
-        Rounding = 2,
-        Icon    = "sliders-horizontal",
-    })
+RightGroup:AddButton({
+	Text = "Disabled",
+	Func = function() end,
+	Disabled = true,
+	Tooltip = "Can't click",
+	DisabledTooltip = "Disabled",
+})
 
-    Right:AddDivider()
+RightGroup:AddButton({
+	Text = "Risky delete",
+	Func = function()
+		print("Deleted!")
+	end,
+	Risky = true,
+})
 
-    Right:AddToggle("AutoShoot", {
-        Text    = "Auto Shoot",
-        Default = false,
-        Icon    = "zap",
-        Risky   = true,
-    })
+RightGroup:AddDivider({ Text = "Collapse demo" })
 
-    Right:AddToggle("TriggerBot", {
-        Text    = "Trigger Bot",
-        Default = false,
-        Icon    = "mouse-pointer-click",
-    })
+RightGroup:AddButton({
+	Text = "Toggle left group collapse",
+	Func = function()
+		LeftGroup:ToggleCollapsed()
+	end,
+})
 
-    Right:AddSlider("TriggerDelay", {
-        Text    = "Trigger Delay (ms)",
-        Default = 50,
-        Min     = 0,
-        Max     = 500,
-        Icon    = "timer",
-    })
-end
+RightGroup:AddButton({
+	Text = "Collapse left group",
+	Func = function()
+		LeftGroup:SetCollapsed(true)
+	end,
+})
 
-do
-    local Left  = Tabs.Visual:AddLeftGroupbox("ESP", { IconName = "scan-eye", Collapsible = true })
-    local Right = Tabs.Visual:AddRightGroupbox("World", { IconName = "globe", Collapsible = true, DefaultCollapsed = true })
+RightGroup:AddButton({
+	Text = "Expand left group",
+	Func = function()
+		LeftGroup:SetCollapsed(false)
+	end,
+})
 
-    Left:AddToggle("ESPEnabled", {
-        Text    = "Player ESP",
-        Default = false,
-        Icon    = "users",
-    })
+local TabBox = Tabs.Main:AddRightTabbox()
 
-    Left:AddToggle("ESPBoxes", {
-        Text    = "Boxes",
-        Default = true,
-        Icon    = "square",
-    })
+local Tab1 = TabBox:AddTab("Tab 1")
+Tab1:AddToggle("Tab1Toggle", { Text = "Tab 1 toggle", Default = false })
+Tab1:AddSlider("Tab1Slider", { Text = "Tab 1 slider", Default = 10, Min = 0, Max = 100, Rounding = 0 })
 
-    Left:AddToggle("ESPNames", {
-        Text    = "Names",
-        Default = true,
-        Icon    = "tag",
-    })
+local Tab2 = TabBox:AddTab("Tab 2")
+Tab2:AddToggle("Tab2Toggle", { Text = "Tab 2 toggle", Default = true })
+Tab2:AddInput("Tab2Input", { Text = "Tab 2 input", Default = "hello", Placeholder = "type here" })
 
-    Left:AddToggle("ESPDistance", {
-        Text    = "Distance",
-        Default = false,
-        Icon    = "ruler",
-    })
+local SliderLeft = Tabs.Sliders:AddLeftGroupbox("Sliders")
+local SliderRight = Tabs.Sliders:AddRightGroupbox("Inputs & Special")
 
-    Left:AddToggle("ESPHealth", {
-        Text    = "Health Bar",
-        Default = true,
-        Icon    = "heart",
-    })
+SliderLeft:AddSlider("Slider1", {
+	Text = "Walk speed",
+	Default = 16,
+	Min = 0,
+	Max = 250,
+	Rounding = 0,
+	Suffix = " st/s",
+	Tooltip = "Drag to see live tooltip",
+	DisabledTooltip = "Locked",
+	Disabled = false,
+	Visible = true,
+	Callback = function(Value)
+		print("[cb] Slider1:", Value)
+	end,
+})
 
-    Left:AddDivider()
+Options.Slider1:OnChanged(function()
+	print("Slider1:", Options.Slider1.Value)
+end)
 
-    Left:AddSlider("ESPMaxDistance", {
-        Text    = "Max Distance",
-        Default = 1000,
-        Min     = 100,
-        Max     = 5000,
-        Suffix  = " studs",
-        Icon    = "maximize",
-    })
+Options.Slider1:SetValue(50)
 
-    Right:AddToggle("Fullbright", {
-        Text    = "Fullbright",
-        Default = false,
-        Icon    = "sun",
-    })
+SliderLeft:AddSlider("Slider2", {
+	Text = "Jump power",
+	Default = 50,
+	Min = 0,
+	Max = 500,
+	Rounding = 0,
+	Prefix = "×",
+})
 
-    Right:AddToggle("NoFog", {
-        Text    = "No Fog",
-        Default = false,
-        Icon    = "cloud-off",
-    })
+SliderLeft:AddSlider("SliderCompact", {
+	Text = "Volume",
+	Default = 70,
+	Min = 0,
+	Max = 100,
+	Rounding = 0,
+	Compact = true,
+	Suffix = "%",
+})
 
-    Right:AddSlider("Brightness", {
-        Text    = "Brightness",
-        Default = 1,
-        Min     = 0,
-        Max     = 10,
-        Rounding = 1,
-        Icon    = "lamp",
-    })
+SliderLeft:AddSlider("SliderHideMax", {
+	Text = "Opacity",
+	Default = 80,
+	Min = 0,
+	Max = 100,
+	Rounding = 0,
+	HideMax = true,
+	Suffix = "%",
+})
 
-    Right:AddDropdown("SkyBox", {
-        Text   = "Sky Theme",
-        Values = { "Default", "Night", "Sunset", "Storm" },
-        Icon   = "cloud",
-    })
-end
+SliderLeft:AddSlider("SliderFormatted", {
+	Text = "Quality",
+	Default = 2,
+	Min = 1,
+	Max = 4,
+	Rounding = 0,
+	FormatDisplayValue = function(slider, value)
+		return ({ "Low", "Medium", "High", "Ultra" })[value] or tostring(value)
+	end,
+})
 
-do
-    local Left  = Tabs.Player:AddLeftGroupbox("Character", { IconName = "person-standing", Collapsible = true })
-    local Right = Tabs.Player:AddRightGroupbox("Movement", { IconName = "footprints", Collapsible = true })
+SliderLeft:AddSlider("SliderDisabled", {
+	Text = "Locked slider",
+	Default = 30,
+	Min = 0,
+	Max = 100,
+	Rounding = 0,
+	Disabled = true,
+	DisabledTooltip = "This slider is locked",
+})
 
-    Left:AddToggle("Godmode", {
-        Text    = "Godmode",
-        Default = false,
-        Icon    = "shield",
-        Risky   = true,
-    })
+SliderRight:AddSlider("DynSlider", {
+	Text = "Dynamic range",
+	Default = 50,
+	Min = 0,
+	Max = 100,
+	Rounding = 1,
+})
 
-    Left:AddToggle("InfStamina", {
-        Text    = "Inf Stamina",
-        Default = false,
-        Icon    = "battery-charging",
-    })
+SliderRight:AddButton({
+	Text = "Halve max",
+	Func = function()
+		local s = Options.DynSlider
+		s:SetMax(math.max(s.Min + 1, math.floor(s.Max / 2)))
+	end,
+})
 
-    Left:AddToggle("AutoHeal", {
-        Text    = "Auto Heal",
-        Default = false,
-        Icon    = "heart-pulse",
-    })
+SliderRight:AddButton({
+	Text = "Double max",
+	Func = function()
+		Options.DynSlider:SetMax(Options.DynSlider.Max * 2)
+	end,
+})
 
-    Left:AddDivider()
+SliderRight:AddButton({
+	Text = "Set min to 25",
+	Func = function()
+		Options.DynSlider:SetMin(25)
+	end,
+})
 
-    Left:AddButton({
-        Text = "Reset Character",
-        Icon = "refresh-ccw",
-        Risky = true,
-        Func  = function()
-            game:GetService("Players").LocalPlayer.Character:FindFirstChild("Humanoid").Health = 0
-        end,
-    })
+SliderRight:AddDivider({ Text = "Inputs" })
 
-    Right:AddToggle("Noclip", {
-        Text    = "Noclip",
-        Default = false,
-        Icon    = "layers",
-        Risky   = true,
-    })
+SliderRight:AddInput("TextInput", {
+	Text = "Server note",
+	Default = "",
+	Placeholder = "Enter text…",
+	Finished = true,
+	ClearTextOnFocus = true,
+	AllowEmpty = true,
+	Tooltip = "Press Enter to confirm",
+	Callback = function(Value)
+		print("[cb] TextInput:", Value)
+	end,
+})
 
-    Right:AddToggle("Flight", {
-        Text    = "Fly",
-        Default = false,
-        Icon    = "plane",
-    })
+Options.TextInput:OnChanged(function()
+	print("TextInput:", Options.TextInput.Value)
+end)
 
-    Right:AddSlider("FlySpeed", {
-        Text    = "Fly Speed",
-        Default = 50,
-        Min     = 5,
-        Max     = 500,
-        Icon    = "wind",
-    })
+SliderRight:AddInput("NumInput", {
+	Text = "Player limit",
+	Default = "10",
+	Numeric = true,
+	Finished = false,
+	Placeholder = "0–100",
+	Callback = function(Value)
+		print("[cb] NumInput:", Value)
+	end,
+})
 
-    Right:AddDivider()
+local DDLeft = Tabs.Dropdowns:AddLeftGroupbox("Single Dropdowns")
+local DDRight = Tabs.Dropdowns:AddRightGroupbox("Multi & Special")
 
-    Right:AddToggle("InfJump", {
-        Text    = "Infinite Jump",
-        Default = false,
-        Icon    = "chevrons-up",
-    })
+DDLeft:AddDropdown("DD1", {
+	Values = { "Option A", "Option B", "Option C" },
+	Default = 1,
+	Multi = false,
+	Text = "Basic dropdown",
+	Tooltip = "Pick one",
+	DisabledTooltip = "Locked",
+	Disabled = false,
+	Visible = true,
+	Callback = function(Value)
+		print("[cb] DD1:", Value)
+	end,
+})
 
-    Right:AddSlider("Gravity", {
-        Text    = "Gravity",
-        Default = 196,
-        Min     = 0,
-        Max     = 500,
-        Icon    = "arrow-down-to-line",
-    })
-end
+Options.DD1:OnChanged(function()
+	print("DD1:", Options.DD1.Value)
+end)
 
-do
-    local Left  = Tabs.Misc:AddLeftGroupbox("Interface", { IconName = "layout", Collapsible = true })
-    local Right = Tabs.Misc:AddRightGroupbox("Danger Zone", { IconName = "triangle-alert", Collapsible = true, DefaultCollapsed = true })
+Options.DD1:SetValue("Option B")
 
-    Left:AddToggle("ShowCursor", {
-        Text    = "Custom Cursor",
-        Default = true,
-        Icon    = "mouse-pointer",
-        Callback = function(v)
-            Library.ShowCustomCursor = v
-        end,
-    })
+DDLeft:AddDropdown("DDSearchable", {
+	Values = { "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta" },
+	Default = 1,
+	Multi = false,
+	Text = "Searchable dropdown",
+	Searchable = true,
+})
 
-    Left:AddDropdown("NotifySide", {
-        Text   = "Notification Side",
-        Values = { "Right", "Left" },
-        Icon   = "bell",
-        Callback = function(v)
-            Library:SetNotifySide(v)
-        end,
-    })
+DDLeft:AddDropdown("DDDisabledVal", {
+	Values = { "Yes", "No", "Maybe", "LOCKED" },
+	DisabledValues = { "LOCKED" },
+	Default = 1,
+	Multi = false,
+	Text = "Dropdown with disabled value",
+})
 
-    Left:AddDropdown("UITheme", {
-        Text   = "Theme",
-        Values = Library:GetThemeNames(),
-        Default = "Obsidian",
-        Icon   = "palette",
-        Callback = function(v)
-            Library:SetTheme(v)
-        end,
-    })
+DDLeft:AddDropdown("DDFormatted", {
+	Values = { "low", "medium", "high", "ultra" },
+	Default = 1,
+	Multi = false,
+	Text = "Display formatted dropdown",
+	FormatDisplayValue = function(Value)
+		return Value:sub(1,1):upper() .. Value:sub(2)
+	end,
+})
 
-    Left:AddSlider("UITransparency", {
-        Text     = "UI Transparency",
-        Default  = 0,
-        Min      = 0,
-        Max      = 90,
-        Rounding = 0,
-        Suffix   = "%",
-        Icon     = "blend",
-        Callback = function(v)
-            Library:SetUITransparency(v / 100)
-        end,
-    })
+DDLeft:AddDropdown("DDLong", {
+	Values = {
+		"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P",
+	},
+	Default = 1,
+	Multi = false,
+	Text = "Long dropdown",
+	MaxVisibleDropdownItems = 12,
+	Searchable = true,
+})
 
-    Left:AddDivider()
+DDLeft:AddDropdown("DDDisabled", {
+	Values = { "X", "Y", "Z" },
+	Default = 1,
+	Multi = false,
+	Text = "Disabled dropdown",
+	Disabled = true,
+	DisabledTooltip = "Locked",
+})
 
-    Left:AddButton({
-        Text = "Test Notification",
-        Icon = "bell-ring",
-        Func = function()
-            Library:Notify({
-                Title       = "Obsidian",
-                Description = "This is a test notification.",
-                Icon        = "info",
-                Time        = 4,
-            })
-        end,
-    })
+DDRight:AddDropdown("DDMulti", {
+	Values = { "Fly", "Speed", "Noclip", "ESP", "Aimbot", "Bhop" },
+	Default = 1,
+	Multi = true,
+	Text = "Multi-select dropdown",
+	Callback = function()
+		local sel = {}
+		for k, v in pairs(Options.DDMulti.Value) do
+			if v then table.insert(sel, k) end
+		end
+		print("[cb] DDMulti:", table.concat(sel, ", "))
+	end,
+})
 
-    Right:AddLabel({ Text = "These actions are irreversible.", Icon = "triangle-alert" })
-    Right:AddDivider()
+Options.DDMulti:SetValue({ Fly = true, Speed = true })
 
-    Right:AddButton({
-        Text      = "Unload Script",
-        Icon      = "log-out",
-        Risky     = true,
-        DoubleClick = true,
-        Func      = function()
-            Library:Unload()
-        end,
-    })
-end
+DDRight:AddDivider({ Text = "Special types" })
+
+DDRight:AddDropdown("DDPlayer", {
+	SpecialType = "Player",
+	ExcludeLocalPlayer = true,
+	Text = "Player picker",
+	Callback = function(Value)
+		print("[cb] DDPlayer:", Value and Value.Name or "nil")
+	end,
+})
+
+DDRight:AddDropdown("DDTeam", {
+	SpecialType = "Team",
+	Text = "Team picker",
+	Callback = function(Value)
+		print("[cb] DDTeam:", Value and Value.Name or "nil")
+	end,
+})
+
+local PickLeft = Tabs.Pickers:AddLeftGroupbox("Color Pickers", "pipette")
+local PickRight = Tabs.Pickers:AddRightGroupbox("Key Pickers", "key")
+
+PickLeft:AddLabel("Stroke color")
+	:AddColorPicker("StrokeColor", {
+		Default = Color3.fromRGB(255, 255, 255),
+		Title = "Stroke color",
+		Transparency = 0,
+		Callback = function(Value)
+			print("[cb] StrokeColor:", Value)
+		end,
+	})
+
+PickLeft:AddLabel("Fill color")
+	:AddColorPicker("FillColor", {
+		Default = Color3.fromRGB(0, 120, 255),
+		Title = "Fill color",
+		Transparency = 0.5,
+		Callback = function(Value)
+			print("[cb] FillColor:", Value)
+		end,
+	})
+
+Options.FillColor:OnChanged(function()
+	print("FillColor:", Options.FillColor.Value, "transparency:", Options.FillColor.Transparency)
+end)
+
+Options.StrokeColor:SetValueRGB(Color3.fromRGB(200, 200, 200))
+
+PickLeft:AddDivider()
+
+PickLeft:AddToggle("GlowToggle", {
+	Text = "Glow effect",
+	Default = false,
+})
+:AddColorPicker("GlowInner", {
+	Default = Color3.fromRGB(255, 200, 0),
+	Title = "Inner glow color",
+})
+:AddColorPicker("GlowOuter", {
+	Default = Color3.fromRGB(255, 100, 0),
+	Title = "Outer glow color",
+	Transparency = 0.3,
+})
+
+PickRight:AddLabel("Toggle mode"):AddKeyPicker("KP_Toggle", {
+	Default = "E",
+	Mode = "Toggle",
+	SyncToggleState = false,
+	Text = "Toggle keybind",
+	NoUI = false,
+	Callback = function(Value)
+		print("[cb] KP_Toggle state:", Value)
+	end,
+	ChangedCallback = function(NewKey, NewMods)
+		print("[cb] KP_Toggle changed:", NewKey, table.unpack(NewMods or {}))
+	end,
+})
+
+Options.KP_Toggle:OnClick(function()
+	print("KP_Toggle clicked, state:", Options.KP_Toggle:GetState())
+end)
+
+Options.KP_Toggle:OnChanged(function()
+	print("KP_Toggle key:", Options.KP_Toggle.Value, table.unpack(Options.KP_Toggle.Modifiers or {}))
+end)
+
+PickRight:AddLabel("Hold mode"):AddKeyPicker("KP_Hold", {
+	Default = "MB2",
+	Mode = "Hold",
+	Text = "Hold to activate",
+	Callback = function(Value)
+		print("[cb] KP_Hold:", Value)
+	end,
+})
+
+task.spawn(function()
+	while task.wait(1) do
+		if Library.Unloaded then break end
+		if Options.KP_Hold and Options.KP_Hold:GetState() then
+			print("KP_Hold is being held")
+		end
+	end
+end)
+
+PickRight:AddLabel("Press mode"):AddKeyPicker("KP_Press", {
+	Default = "X",
+	Mode = "Press",
+	WaitForCallback = false,
+	Text = "Press to fire",
+	Callback = function()
+		print("[cb] KP_Press fired")
+	end,
+})
+
+Options.KP_Toggle:SetValue({ "G", "Hold" })
+
+local NotifyLeft = Tabs.Notify:AddLeftGroupbox("Type Presets", "bell")
+local NotifyRight = Tabs.Notify:AddRightGroupbox("Custom Notifications", "bell-dot")
+
+NotifyLeft:AddButton({
+	Text = "Success notify",
+	Func = function()
+		Library:Notify({
+			Title = "Success",
+			Description = "Operation completed successfully.",
+			Type = "success",
+			Time = 4,
+		})
+	end,
+})
+
+NotifyLeft:AddButton({
+	Text = "Error notify",
+	Func = function()
+		Library:Notify({
+			Title = "Error",
+			Description = "Something went wrong. Please try again.",
+			Type = "error",
+			Time = 5,
+		})
+	end,
+})
+
+NotifyLeft:AddButton({
+	Text = "Warning notify",
+	Func = function()
+		Library:Notify({
+			Title = "Warning",
+			Description = "Proceed with caution.",
+			Type = "warning",
+			Time = 4,
+		})
+	end,
+})
+
+NotifyLeft:AddButton({
+	Text = "Info notify",
+	Func = function()
+		Library:Notify({
+			Title = "Info",
+			Description = "Here is some useful information.",
+			Type = "info",
+			Time = 4,
+		})
+	end,
+})
+
+NotifyLeft:AddDivider()
+
+NotifyLeft:AddButton({
+	Text = "Type + custom AccentColor",
+	Func = function()
+		Library:Notify({
+			Title = "Custom accent",
+			Description = "Type preset with overridden bar color.",
+			Type = "success",
+			AccentColor = Color3.fromRGB(0, 220, 180),
+			Time = 4,
+		})
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "Plain description only",
+	Func = function()
+		Library:Notify("This is a plain notification", 3)
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "Title + description",
+	Func = function()
+		Library:Notify({
+			Title = "Hello",
+			Description = "This is a standard notification.",
+			Time = 4,
+		})
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "With small icon",
+	Func = function()
+		Library:Notify({
+			Title = "Shield active",
+			Description = "Protection mode is now on.",
+			Icon = "shield-check",
+			IconColor = Color3.fromRGB(80, 200, 120),
+			Time = 4,
+		})
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "With big icon",
+	Func = function()
+		Library:Notify({
+			Title = "Download complete",
+			Description = "Your file has been saved.",
+			BigIcon = "download",
+			IconColor = Color3.fromRGB(80, 150, 255),
+			Time = 4,
+		})
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "Persistent notify",
+	Func = function()
+		local n = Library:Notify({
+			Title = "Persistent",
+			Description = "Will stay until dismissed.",
+			Persist = true,
+		})
+		task.delay(6, function()
+			if not n.Destroyed then
+				n:Destroy()
+			end
+		end)
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "Stepped progress notify",
+	Func = function()
+		local n = Library:Notify({
+			Title = "Loading…",
+			Description = "Processing steps.",
+			Steps = 5,
+			Persist = true,
+		})
+		task.spawn(function()
+			for i = 1, 5 do
+				task.wait(0.6)
+				n:ChangeStep(i)
+				n:ChangeTitle("Step " .. i .. " / 5")
+			end
+			task.wait(0.5)
+			n:Destroy()
+		end)
+	end,
+})
+
+NotifyRight:AddButton({
+	Text = "With sound",
+	Func = function()
+		Library:Notify({
+			Title = "Ding!",
+			Description = "Notification with a sound.",
+			SoundId = 9120273648,
+			Time = 3,
+		})
+	end,
+})
+
+Tabs.Key:AddLabel({
+	Text = "Enter the key below to unlock.",
+	DoesWrap = true,
+	Size = 16,
+})
+
+Tabs.Key:AddKeyBox(function(ReceivedKey)
+	local Success = ReceivedKey == "Obsidian"
+	print("Key attempt:", ReceivedKey, "| Success:", Success)
+	Library:Notify({
+		Title = Success and "Access granted" or "Wrong key",
+		Description = "Received: " .. ReceivedKey,
+		Type = Success and "success" or "error",
+		Time = 4,
+	})
+end)
+
+Library:AddDraggableLabel("Draggable Label")
+
+local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "wrench")
+
+MenuGroup:AddToggle("KeybindMenuOpen", {
+	Default = Library.KeybindFrame.Visible,
+	Text = "Open Keybind Menu",
+	Callback = function(Value)
+		Library.KeybindFrame.Visible = Value
+	end,
+})
+
+MenuGroup:AddToggle("ShowCustomCursor", {
+	Text = "Custom Cursor",
+	Default = true,
+	Callback = function(Value)
+		Library.ShowCustomCursor = Value
+	end,
+})
+
+MenuGroup:AddDropdown("NotificationSide", {
+	Values = { "Left", "Right" },
+	Default = "Right",
+	Text = "Notification Side",
+	Callback = function(Value)
+		Library:SetNotifySide(Value)
+	end,
+})
+
+MenuGroup:AddDropdown("DPIDropdown", {
+	Values = { "50%", "75%", "100%", "125%", "150%", "175%", "200%" },
+	Default = "100%",
+	Text = "DPI Scale",
+	Callback = function(Value)
+		Library:SetDPIScale(tonumber(Value:gsub("%%", "")))
+	end,
+})
+
+MenuGroup:AddSlider("UICornerSlider", {
+	Text = "Corner Radius",
+	Default = Library.CornerRadius,
+	Min = 0,
+	Max = 20,
+	Rounding = 0,
+	Callback = function(Value)
+		Window:SetCornerRadius(Value)
+	end,
+})
+
+MenuGroup:AddDivider()
+MenuGroup:AddLabel("Menu bind")
+	:AddKeyPicker("MenuKeybind", {
+		Default = "RightShift",
+		NoUI = true,
+		Text = "Menu keybind",
+	})
+
+MenuGroup:AddButton("Unload", function()
+	Library:Unload()
+end)
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+Library:OnUnload(function()
+	print("Unloaded!")
+end)
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+
+ThemeManager:SetFolder("ObsidianFullExample")
+SaveManager:SetFolder("ObsidianFullExample/game")
+
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+
+SaveManager:LoadAutoloadConfig()
