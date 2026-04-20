@@ -594,8 +594,8 @@ function NeverLose:CreateMenuIcon(Config)
 end;
 
 if getcustomasset then
-	local link = "https://github.com/4lpaca-pin/NeverLose/blob/main/assets/%s?raw=true";
-	local dir = 'NLAssets';
+	local link = "https://github.com/2863862963872963/uis-vault/tree/main/Neverlose.cc/assets/%s?raw=true";
+	local dir = 'AscAssets';
 
 	if not isfolder(dir) then
 		makefolder(dir);
