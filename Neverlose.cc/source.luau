@@ -205,6 +205,7 @@ NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
 NeverLose.IsMosueOverOtherFrame = false;
 NeverLose.GlobalLogo = "rbxassetid://120358385035996";
+NeverLose.GlobalLogo2 = "";
 NeverLose.ImageColorMapping = "rbxassetid://4155801252";
 
 -- ┌─────────────────────────────────────────────────────────────────┐
@@ -611,6 +612,19 @@ if getcustomasset then
 
 		if isfile(dir..'/'..'logo.png') then
 			NeverLose.GlobalLogo = getcustomasset(dir..'/'..'logo.png')
+		end;
+	end);
+
+	pcall(function()
+		if not isfile(dir..'/'..'logo2.png') then
+			local byte = game:HttpGet(string.format(link,'logo2.png'));
+
+			writefile(dir..'/'..'logo2.png' , byte);
+			task.wait();
+		end;
+
+		if isfile(dir..'/'..'logo2.png') then
+			NeverLose.GlobalLogo2 = getcustomasset(dir..'/'..'logo2.png')
 		end;
 	end);
 
