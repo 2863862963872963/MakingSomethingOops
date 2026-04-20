@@ -394,7 +394,7 @@ function NeverLose:CreateMenuIcon(Config)
 		end;
 	end;
 
-	_applyIcon(iconImage);
+	-- _applyIcon(iconImage);
 
 	-- ── Show / Hide with smooth animations ───────────────────────
 	local function _setIconVisible(val)
@@ -446,7 +446,7 @@ function NeverLose:CreateMenuIcon(Config)
 	--- Change the icon image (rbxassetid, URL, or built-in name)
 	function MenuIconLib:SetIcon(src)
 		iconImage = src;
-		_applyIcon(src);
+		-- _applyIcon(src);
 	end;
 
 	--- Change icon tint colour
